@@ -206,7 +206,7 @@ describe("parse api filter", () => {
 			await expect(filterPromise).rejects.toThrow();
 		});
 
-		it("should parse for plucked join one", async () => {
+		it("should parse for plucked join one exists", async () => {
 			const filter = await parseApiFilter($classesOrm, `teacherName exists`);
 			expect(filter).toBeInstanceOf(models.AndFilterGroup);
 
@@ -219,6 +219,12 @@ describe("parse api filter", () => {
 
 			const { left } = expressions.find((expr) => expr instanceof models.IsNotNullFilterNode) as models.IsNotNullFilterNode;
 			expect(left.toString()).toBe("classes.teacherName.name");
+		});
+
+		it("should parse for plucked join one filters", async () => {
+			const filter = await parseApiFilter($classesOrm, `teacherName eq "test"`);
+			expect(filter).toBeInstanceOf(models.EqualFilterNode);
+			expect((filter as models.EqualFilterNode).left.toString()).toBe("classes.teacherName.name");
 		});
 	});
 

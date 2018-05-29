@@ -11,6 +11,7 @@ module.exports = () => {
 			"src/**/*.spec.ts"
 		],
 		filesWithNoCoverageCalculated: [
+			"src/codegen/**/*.ts",
 			"src/tests/**/*.ts"
 		],
 		env: {

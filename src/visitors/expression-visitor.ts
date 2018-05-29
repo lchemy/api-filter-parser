@@ -71,9 +71,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 
 	visitOpNullCheckExpression(ctx: OpNullCheckExpressionContext): Filter {
 		const op = ctx.OP_NULL_CHECK().text,
-			value = ctx.value().accept(this.valueVisitor) as any;
-
-		assertColumnValue(value);
+			value = toColumnValue(ctx.value().accept(this.valueVisitor));
 
 		switch (op) {
 			case "is null":
@@ -89,9 +87,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 		const op = ctx.OP_COMPARISON().text;
 
 		const [left, right] = ctx.value().map((valueCtx) => {
-			const value = valueCtx.accept(this.valueVisitor) as any;
-			assertColumnValue(value);
-			return value;
+			return toColumnValue(valueCtx.accept(this.valueVisitor));
 		});
 
 		switch (op) {
@@ -116,9 +112,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 		const op = ctx.OP_LIKE().text;
 
 		const [left, right] = ctx.value().map((valueCtx) => {
-			const value = valueCtx.accept(this.valueVisitor) as any;
-			assertColumnValue(value);
-			return value;
+			return toColumnValue(valueCtx.accept(this.valueVisitor));
 		});
 
 		switch (op) {
@@ -139,9 +133,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 		const op = ctx.OP_BETWEEN().text;
 
 		const [left, start, end] = ctx.value().map((valueCtx) => {
-			const value = valueCtx.accept(this.valueVisitor) as any;
-			assertColumnValue(value);
-			return value;
+			return toColumnValue(valueCtx.accept(this.valueVisitor));
 		});
 
 		switch (op) {
@@ -158,9 +150,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 		const op = ctx.OP_IN().text;
 
 		const [left, ...values] = ctx.value().map((valueCtx) => {
-			const value = valueCtx.accept(this.valueVisitor) as any;
-			assertColumnValue(value);
-			return value;
+			return toColumnValue(valueCtx.accept(this.valueVisitor));
 		});
 
 		switch (op) {
@@ -219,7 +209,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 	visitOpHaveCountExpression(ctx: OpHaveCountExpressionContext): Filter {
 		const op = ctx.OP_COMPARISON().text;
 
-		const [left, right] = ctx.value().map((valueCtx) => {
+		const [left, rawRight] = ctx.value().map((valueCtx) => {
 			return valueCtx.accept(this.valueVisitor) as any;
 		});
 
@@ -227,7 +217,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			throw new Error(`Expected ${ left } to be a join many field`);
 		}
 
-		assertColumnValue(right);
+		const right = toColumnValue(rawRight);
 
 		switch (op) {
 			case "eq":
@@ -256,7 +246,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 	}
 }
 
-function assertColumnValue(value: ValueType): void {
+function toColumnValue(value: ValueType): number | string | ColumnField | DerivedField | WrappedRaw {
 	if (
 		typeof value === "number" ||
 		typeof value === "string" ||
@@ -264,7 +254,10 @@ function assertColumnValue(value: ValueType): void {
 		value instanceof DerivedField ||
 		value instanceof WrappedRaw
 	) {
-		return;
+		return value;
+	}
+	if (isPluckedJoinOneField(value)) {
+		return value["🜁"].pluckField;
 	}
 	throw new Error(`Expected ${ value } to be number, string, column field, derived field, or raw`);
 }
