@@ -11,7 +11,7 @@ export class ParseError extends Error {
 	private _annotatedInput!: string;
 
 	constructor(
-		code: ParseErrorCode,
+		public code: ParseErrorCode,
 		public input: string,
 		public errors: AntlrError[]
 	) {
