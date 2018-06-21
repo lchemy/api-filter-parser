@@ -13,6 +13,7 @@ import { OpComparisonExpressionContext } from './ApiFilterParser';
 import { OpLikeExpressionContext } from './ApiFilterParser';
 import { OpExistsExpressionContext } from './ApiFilterParser';
 import { StringValueContext } from './ApiFilterParser';
+import { RawFnContext } from './ApiFilterParser';
 import { RawValueContext } from './ApiFilterParser';
 import { NumberValueContext } from './ApiFilterParser';
 import { FieldValueContext } from './ApiFilterParser';
@@ -100,6 +101,13 @@ export interface ApiFilterVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitStringValue?: (ctx: StringValueContext) => Result;
+	/**
+	 * Visit a parse tree produced by the `rawFn`
+	 * labeled alternative in `ApiFilterParser.value`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitRawFn?: (ctx: RawFnContext) => Result;
 	/**
 	 * Visit a parse tree produced by the `rawValue`
 	 * labeled alternative in `ApiFilterParser.value`.

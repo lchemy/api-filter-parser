@@ -246,8 +246,9 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 	}
 }
 
-function toColumnValue(value: ValueType): number | string | ColumnField | DerivedField | WrappedRaw {
+function toColumnValue(value: ValueType): number | boolean | string | ColumnField | DerivedField | WrappedRaw {
 	if (
+		typeof value === "boolean" ||
 		typeof value === "number" ||
 		typeof value === "string" ||
 		value instanceof ColumnField ||

@@ -15,10 +15,11 @@ expression
   ;
 
 value
-  : RAW     # rawValue
-  | FIELD   # fieldValue
+  : RAW '(' value (',' value)* ')' #rawFn
+  | RAW     # rawValue
   | STRING  # stringValue
   | NUMBER  # numberValue
+  | FIELD   # fieldValue
   ;
 
 OP_NULL_CHECK: 'is null' | 'is not null';

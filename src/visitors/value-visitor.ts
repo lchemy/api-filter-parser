@@ -3,8 +3,10 @@ import { raw } from "@lchemy/orm";
 import { Field, Orm, PluckedJoinManyField, WrappedRaw } from "@lchemy/orm/models";
 
 import {
+	BooleanValueContext,
 	FieldValueContext,
 	NumberValueContext,
+	RawFnContext,
 	RawValueContext,
 	StringValueContext
 } from "../codegen/ApiFilterParser";
@@ -12,7 +14,7 @@ import { ApiFilterVisitor } from "../codegen/ApiFilterVisitor";
 
 import { VisitorContext } from "./visitor-context";
 
-export type ValueType = Field | WrappedRaw | number | string;
+export type ValueType = Field | WrappedRaw | boolean | number | string;
 export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements ApiFilterVisitor<ValueType> {
 	constructor(private context: VisitorContext) {
 		super();
@@ -27,8 +29,17 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 		return Number(ctx.NUMBER().text);
 	}
 
-	visitFieldValue(ctx: FieldValueContext): Field {
+	visitFieldValue(ctx: FieldValueContext): Field | boolean {
 		const path = ctx.FIELD()!.text;
+
+		// handle boolean cases
+		if (path === "true") {
+			return true;
+		}
+		if (path === "false") {
+			return false;
+		}
+
 		return this.getFieldWithPath(this.context.orm, path);
 	}
 
@@ -45,10 +56,42 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 			const path = key.substr(7);
 			return this.getFieldWithPath(this.context.orm.$parent, path);
 		} else if (raw.hasOwnProperty(key)) {
-			return (raw as any)[key];
+			const rawValue = (raw as any)[key];
+			if (typeof rawValue === "function") {
+				throw new Error(`Unexpected raw function key ${ key } used as a raw key`);
+			}
+			return rawValue;
 		}
 
 		throw new Error(`Unexpected raw key ${ key }`);
+	}
+
+	visitRawFn(ctx: RawFnContext): WrappedRaw {
+		const key = ctx.RAW().text.substr(1);
+
+		if (raw.hasOwnProperty(key)) {
+			const rawFn = (raw as any)[key] as (...args: any[]) => WrappedRaw;
+			if (typeof rawFn !== "function") {
+				throw new Error(`Unexpected raw key ${ key } used as a raw function key`);
+			}
+
+			const values = ctx.value().map((valueCtx) => valueCtx.accept(this));
+
+			let rawValue: WrappedRaw;
+			try {
+				rawValue = rawFn(...values);
+			} catch {
+				throw new Error(`Failed to evaluate raw function key ${ key }`);
+			}
+
+			if (!(rawValue instanceof WrappedRaw)) {
+				throw new Error(`Unexpected output from raw function key ${ key }`);
+			}
+
+			return rawValue;
+		}
+
+		throw new Error(`Unexpected raw function key ${ key }`);
 	}
 
 	protected defaultResult(): ValueType {

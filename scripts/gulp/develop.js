@@ -13,7 +13,7 @@ gulp.task("develop:build:package", () => {
 
 gulp.task("develop:build:codegen", () => {
 	gulp.watch([
-		"./scripts/codegen/templates/**/*.ejs"
+		"./src/grammar/**/*.g4"
 	], gulp.series("build:codegen"));
 });
 

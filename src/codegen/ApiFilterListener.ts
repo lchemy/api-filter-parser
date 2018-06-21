@@ -13,6 +13,7 @@ import { OpComparisonExpressionContext } from './ApiFilterParser';
 import { OpLikeExpressionContext } from './ApiFilterParser';
 import { OpExistsExpressionContext } from './ApiFilterParser';
 import { StringValueContext } from './ApiFilterParser';
+import { RawFnContext } from './ApiFilterParser';
 import { RawValueContext } from './ApiFilterParser';
 import { NumberValueContext } from './ApiFilterParser';
 import { FieldValueContext } from './ApiFilterParser';
@@ -147,6 +148,18 @@ export interface ApiFilterListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitStringValue?: (ctx: StringValueContext) => void;
+	/**
+	 * Enter a parse tree produced by the `rawFn`
+	 * labeled alternative in `ApiFilterParser.value`.
+	 * @param ctx the parse tree
+	 */
+	enterRawFn?: (ctx: RawFnContext) => void;
+	/**
+	 * Exit a parse tree produced by the `rawFn`
+	 * labeled alternative in `ApiFilterParser.value`.
+	 * @param ctx the parse tree
+	 */
+	exitRawFn?: (ctx: RawFnContext) => void;
 	/**
 	 * Enter a parse tree produced by the `rawValue`
 	 * labeled alternative in `ApiFilterParser.value`.

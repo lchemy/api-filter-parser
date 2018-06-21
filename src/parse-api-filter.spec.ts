@@ -6,15 +6,19 @@ import { $classesOrm, $schoolsOrm, $studentsOrm, $teachersOrm } from "./tests/mo
 describe("parse api filter", () => {
 	it("should parse types correctly", async () => {
 		const filter0 = await parseApiFilter($schoolsOrm, `"a" eq 1`),
-			filter1 = await parseApiFilter($schoolsOrm, `id eq $now`);
+			filter1 = await parseApiFilter($schoolsOrm, `id eq $now`),
+			filter2 = await parseApiFilter($schoolsOrm, `true neq false`);
 
 		const { left: left0, right: right0 } = filter0 as models.EqualFilterNode,
-			{ left: left1, right: right1 } = filter1 as models.EqualFilterNode;
+			{ left: left1, right: right1 } = filter1 as models.EqualFilterNode,
+			{ left: left2, right: right2 } = filter2 as models.NotEqualFilterNode;
 
 		expect(typeof left0).toBe("string");
 		expect(typeof right0).toBe("number");
 		expect(left1).toBeInstanceOf(models.ColumnField);
 		expect(right1).toBeInstanceOf(models.WrappedRaw);
+		expect(left2).toBe(true);
+		expect(right2).toBe(false);
 	});
 
 	it("should parse nested expressions", async () => {
@@ -433,5 +437,39 @@ describe("parse api filter", () => {
 
 	it("should throw an error on invalid field", async () => {
 		await expect(parseApiFilter($classesOrm, "field.that.doesnt.exist eq 1")).rejects.toThrow("Invalid field");
+	});
+
+	describe("raw values", () => {
+		it("should parse raw constants", async () => {
+			const filter = await parseApiFilter($classesOrm, "id eq $now") as models.LikeFilterNode,
+				raw = filter.right as models.WrappedRaw;
+			expect(raw.sql).toBe("CURRENT_TIMESTAMP");
+			expect(raw.bindings).toEqual([]);
+		});
+
+		it("should parse raw functions", async () => {
+			const filter0 = await parseApiFilter($classesOrm, "fullName like $asString(1)") as models.LikeFilterNode,
+				raw0 = filter0.right as models.WrappedRaw;
+			expect(raw0.sql).toBe("CAST(? AS STRING)");
+			expect(raw0.bindings).toEqual([1]);
+
+			const filter1 = await parseApiFilter($classesOrm, "$asString(id) like $asString($now)") as models.LikeFilterNode,
+				rawLeft1 = filter1.left as models.WrappedRaw,
+				rawRight1 = filter1.right as models.WrappedRaw;
+			expect(rawLeft1.sql).toBe("CAST(? AS STRING)");
+			expect((rawLeft1.bindings as any[])[0].toString()).toEqual("classes.id");
+			expect(rawRight1.sql).toBe("CAST(? AS STRING)");
+			expect((rawRight1.bindings as any[])[0].sql).toEqual("CURRENT_TIMESTAMP");
+		});
+
+		it("should throw an error on invalid raw constant", async () => {
+			await expect(parseApiFilter($classesOrm, "id eq $invalidRaw")).rejects.toThrow("Unexpected raw key");
+			await expect(parseApiFilter($classesOrm, "id eq $asString")).rejects.toThrow("Unexpected raw function key");
+		});
+
+		it("should throw an error on invalid raw function", async () => {
+			await expect(parseApiFilter($classesOrm, "id eq $invalidRaw(1)")).rejects.toThrow("Unexpected raw function key");
+			await expect(parseApiFilter($classesOrm, "id eq $now(1)")).rejects.toThrow("Unexpected raw key");
+		});
 	});
 });
