@@ -10,6 +10,7 @@ import {
 	StringValueContext
 } from "../codegen/ApiFilterParser";
 import { ApiFilterVisitor } from "../codegen/ApiFilterVisitor";
+import { ValueError, ValueErrorCode } from "../errors";
 
 import { VisitorContext } from "./visitor-context";
 
@@ -47,7 +48,7 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 			subqueryTarget = this.context.subqueryTarget;
 		if (key === "field") {
 			if (!(subqueryTarget instanceof PluckedJoinManyField)) {
-				throw new Error(`Expected subquery target to be a plucked join many field`);
+				throw new ValueError(ValueErrorCode.ERR_EXPECTED_SUBQUERY_FOR_PLUCKED_JOIN_MANY, undefined);
 			}
 			return subqueryTarget["🜁"].pluckField;
 		} else if (key.startsWith("parent") && this.context.orm.$parent != null && subqueryTarget != null) {
@@ -57,12 +58,12 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 		} else if (raw.hasOwnProperty(key)) {
 			const rawValue = (raw as any)[key];
 			if (typeof rawValue === "function") {
-				throw new Error(`Unexpected raw function key ${ key } used as a raw key`);
+				throw new ValueError(ValueErrorCode.ERR_UNEXPECTED_RAW_FUNCTION_AS_RAW, key);
 			}
 			return rawValue;
 		}
 
-		throw new Error(`Unexpected raw key ${ key }`);
+		throw new ValueError(ValueErrorCode.ERR_INVALID_RAW, key);
 	}
 
 	visitRawFn(ctx: RawFnContext): WrappedRaw {
@@ -71,7 +72,7 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 		if (raw.hasOwnProperty(key)) {
 			const rawFn = (raw as any)[key] as (...args: any[]) => WrappedRaw;
 			if (typeof rawFn !== "function") {
-				throw new Error(`Unexpected raw key ${ key } used as a raw function key`);
+				throw new ValueError(ValueErrorCode.ERR_UNEXPECTED_RAW_AS_RAW_FUNCTION, key);
 			}
 
 			const values = ctx.value().map((valueCtx) => valueCtx.accept(this));
@@ -80,21 +81,21 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 			try {
 				rawValue = rawFn(...values);
 			} catch {
-				throw new Error(`Failed to evaluate raw function key ${ key }`);
+				throw new ValueError(ValueErrorCode.ERR_RAW_FUNCTION_FAILED, key);
 			}
 
 			if (!(rawValue instanceof WrappedRaw)) {
-				throw new Error(`Unexpected output from raw function key ${ key }`);
+				throw new ValueError(ValueErrorCode.ERR_INVALID_RAW_FUNCTION_OUTPUT, key);
 			}
 
 			return rawValue;
 		}
 
-		throw new Error(`Unexpected raw function key ${ key }`);
+		throw new ValueError(ValueErrorCode.ERR_INVALID_RAW_FUNCTION, key);
 	}
 
 	protected defaultResult(): ValueType {
-		throw new Error("Unexpected call for value default result");
+		throw new ValueError(ValueErrorCode.ERR_UNEXPECTED_DEFAULT, undefined);
 	}
 
 	private getFieldWithPath(orm: Orm, path: string): Field {
@@ -106,11 +107,11 @@ export class ValueVisitor extends AbstractParseTreeVisitor<ValueType> implements
 		}, orm);
 
 		if (!(field instanceof Field)) {
-			throw new Error(`Invalid field ${ path }`);
+			throw new ValueError(ValueErrorCode.ERR_INVALID_FIELD, path);
 		}
 
 		if (this.context.maxDepth != null && field["🜁"].depth > this.context.maxDepth) {
-			throw new Error(`Failed to get field at ${ path }, exceeds max depth`);
+			throw new ValueError(ValueErrorCode.ERR_FIELD_MAX_DEPTH_FAILED, path);
 		}
 
 		return field;

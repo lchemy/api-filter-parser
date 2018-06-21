@@ -39,6 +39,7 @@ import {
 	OpNullCheckExpressionContext
 } from "../codegen/ApiFilterParser";
 import { ApiFilterVisitor } from "../codegen/ApiFilterVisitor";
+import { ExpressionError, ExpressionErrorCode } from "../errors";
 
 import { ValueType, ValueVisitor } from "./value-visitor";
 import { VisitorContext } from "./visitor-context";
@@ -65,7 +66,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "or":
 				return left.or(right);
 			default:
-				throw new Error(`Unexpected grouping ${ group }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_GROUPING, group);
 		}
 	}
 
@@ -79,7 +80,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "is not null":
 				return new IsNotNullFilterNode(value);
 			default:
-				throw new Error(`Unexpected 'null check' operator ${ op }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 		}
 	}
 
@@ -104,7 +105,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "lte":
 				return new LessThanEqualFilterNode(left, right);
 			default:
-				throw new Error(`Unexpected 'comparison' operator ${ op }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 		}
 	}
 
@@ -125,7 +126,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "not ilike":
 				return new NotILikeFilterNode(left, right);
 			default:
-				throw new Error(`Unexpected 'like' operator ${ op }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 		}
 	}
 
@@ -142,7 +143,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "not between":
 				return new NotBetweenFilterNode(left, [start, end]);
 			default:
-				throw new Error(`Unexpected 'between' operator ${ op }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 		}
 	}
 
@@ -159,7 +160,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "not in":
 				return new NotInFilterNode(left, values);
 			default:
-				throw new Error(`Unexpected 'in' operator ${ op }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 		}
 	}
 
@@ -170,7 +171,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 
 		if (isJoinOneField(left) || isPluckedJoinOneField(left)) {
 			if (subqueryCtx != null) {
-				throw new Error(`Expected ${ op } with join one field to not have a subquery`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_SUBQUERY_FOR_JOIN_ONE, op);
 			}
 			switch (op) {
 				case "exists":
@@ -178,7 +179,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 				case "not exists":
 					return left.$notExists();
 				default:
-					throw new Error(`Unexpected 'exists' operator ${ op }`);
+					throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 			}
 		}
 
@@ -199,11 +200,11 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 				case "not exists":
 					return (left as any).$notExists(subquery);
 				default:
-					throw new Error(`Unexpected 'exists' operator ${ op }`);
+					throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 			}
 		}
 
-		throw new Error(`Expected ${ left } to be a join one field or a join many field`);
+		throw new ExpressionError(ExpressionErrorCode.ERR_EXPECTED_JOIN_FIELD, left);
 	}
 
 	visitOpHaveCountExpression(ctx: OpHaveCountExpressionContext): Filter {
@@ -214,7 +215,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 		});
 
 		if (!isJoinManyField(left) && !isPartitionedJoinManyField(left) && !isPluckedJoinManyField(left)) {
-			throw new Error(`Expected ${ left } to be a join many field`);
+			throw new ExpressionError(ExpressionErrorCode.ERR_EXPECTED_JOIN_MANY_FIELD, left);
 		}
 
 		const right = toColumnValue(rawRight);
@@ -233,7 +234,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 			case "lte":
 				return left.$haveCountLte(right);
 			default:
-				throw new Error(`Unexpected 'have count' operator ${ op }`);
+				throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR, op);
 		}
 	}
 
@@ -242,7 +243,7 @@ export class ExpressionVisitor extends AbstractParseTreeVisitor<Filter> implemen
 	}
 
 	protected defaultResult(): Filter {
-		throw new Error("Unexpected call for expression default result");
+		throw new ExpressionError(ExpressionErrorCode.ERR_UNEXPECTED_DEFAULT, undefined);
 	}
 }
 
@@ -260,7 +261,7 @@ function toColumnValue(value: ValueType): number | boolean | string | ColumnFiel
 	if (isPluckedJoinOneField(value)) {
 		return value["🜁"].pluckField;
 	}
-	throw new Error(`Expected ${ value } to be number, string, column field, derived field, or raw`);
+	throw new ExpressionError(ExpressionErrorCode.ERR_INVALID_VALUE, value);
 }
 
 function isJoinOneField(value: any): value is JoinOneField {

@@ -463,12 +463,12 @@ describe("parse api filter", () => {
 		});
 
 		it("should throw an error on invalid raw constant", async () => {
-			await expect(parseApiFilter($classesOrm, "id eq $invalidRaw")).rejects.toThrow("Unexpected raw key");
+			await expect(parseApiFilter($classesOrm, "id eq $invalidRaw")).rejects.toThrow("Invalid raw key");
 			await expect(parseApiFilter($classesOrm, "id eq $asString")).rejects.toThrow("Unexpected raw function key");
 		});
 
 		it("should throw an error on invalid raw function", async () => {
-			await expect(parseApiFilter($classesOrm, "id eq $invalidRaw(1)")).rejects.toThrow("Unexpected raw function key");
+			await expect(parseApiFilter($classesOrm, "id eq $invalidRaw(1)")).rejects.toThrow("Invalid raw function key");
 			await expect(parseApiFilter($classesOrm, "id eq $now(1)")).rejects.toThrow("Unexpected raw key");
 		});
 	});

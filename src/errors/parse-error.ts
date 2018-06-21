@@ -11,10 +11,20 @@ export class ParseError extends Error {
 	private _annotatedInput!: string;
 
 	constructor(
-		message: string | undefined,
+		code: ParseErrorCode,
 		public input: string,
 		public errors: AntlrError[]
 	) {
-		super(message);
+		super(messages[code]);
 	}
 }
+
+export enum ParseErrorCode {
+	ERR_UNRECOGNIZED_CHARACTERS = "ERR_UNRECOGNIZED_CHARACTERS",
+	ERR_INVALID_TOKENS = "ERR_INVALID_TOKENS"
+}
+
+const messages: Record<ParseErrorCode, string> = {
+	[ParseErrorCode.ERR_UNRECOGNIZED_CHARACTERS]: "Failed to parse input due to unrecognized characters",
+	[ParseErrorCode.ERR_INVALID_TOKENS]: "Failed to parse input due to invalid tokens"
+};

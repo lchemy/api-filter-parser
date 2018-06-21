@@ -3,7 +3,7 @@ import { Filter, Orm, OrmRef } from "@lchemy/orm";
 
 import { ApiFilterLexer } from "./codegen/ApiFilterLexer";
 import { ApiFilterParser } from "./codegen/ApiFilterParser";
-import { ErrorListener, ParseError } from "./errors";
+import { ErrorListener, ParseError, ParseErrorCode } from "./errors";
 import { ExpressionVisitor } from "./visitors";
 
 export async function parseApiFilter(ormRef: OrmRef<Orm>, input: string, maxDepth?: number): Promise<Filter> {
@@ -25,11 +25,11 @@ export async function parseApiFilter(ormRef: OrmRef<Orm>, input: string, maxDept
 		expression = filter.expression();
 
 	if (lexerErrorListener.errors.length > 0) {
-		throw new ParseError("Failed to parse input due to unrecognized characters", input, lexerErrorListener.errors);
+		throw new ParseError(ParseErrorCode.ERR_UNRECOGNIZED_CHARACTERS, input, lexerErrorListener.errors);
 	}
 
 	if (parserErrorListener.errors.length > 0) {
-		throw new ParseError("Failed to parse input due to invalid tokens", input, parserErrorListener.errors);
+		throw new ParseError(ParseErrorCode.ERR_INVALID_TOKENS, input, parserErrorListener.errors);
 	}
 
 	const expressionVisitor = new ExpressionVisitor({ orm, maxDepth });
