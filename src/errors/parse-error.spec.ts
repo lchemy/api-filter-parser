@@ -1,9 +1,9 @@
 import { AntlrError } from "./antlr-error";
-import { ParseError } from "./parse-error";
+import { ParseError, ParseErrorCode } from "./parse-error";
 
 describe("", () => {
 	it("should create annotated inputs", () => {
-		const error = new ParseError("Test Error", "123456789", [
+		const error = new ParseError(ParseErrorCode.ERR_UNRECOGNIZED_CHARACTERS, "123456789", [
 			new AntlrError("Test Error", {
 				start: {
 					row: 1,
@@ -21,7 +21,7 @@ describe("", () => {
 
 	// TODO: can this be done better?
 	it("should cache the annotated inputs", () => {
-		const error = new ParseError("Test Error", "123456789", [
+		const error = new ParseError(ParseErrorCode.ERR_UNRECOGNIZED_CHARACTERS, "123456789", [
 			new AntlrError("Test Error", {
 				start: {
 					row: 1,

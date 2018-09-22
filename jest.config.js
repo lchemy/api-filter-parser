@@ -1,7 +1,7 @@
 module.exports = {
 	testEnvironment: "node",
 	transform: {
-		"^.+\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+		"^.+\\.ts$": "ts-jest"
 	},
 	testRegex: "^.+\.spec\.ts$",
 	moduleFileExtensions: ["ts", "js"],
@@ -20,5 +20,16 @@ module.exports = {
 	modulePathIgnorePatterns: [
 		"<rootDir>/dist"
 	],
-	verbose: true
+	verbose: true,
+
+	globals: {
+		"ts-jest": {
+			diagnostics: {
+				ignoreCodes: [
+					// ignore unused errors
+					6133
+				]
+			}
+		}
+	}
 };

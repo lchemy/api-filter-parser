@@ -1,6 +1,6 @@
 import { annotateParseError, checkRangesIntersect, getErrorRanges, simplifyRanges } from "./annotate-parse-error";
 import { AntlrError, AntlrErrorRange } from "./antlr-error";
-import { ParseError } from "./parse-error";
+import { ParseError, ParseErrorCode } from "./parse-error";
 
 describe("annotate parse error", () => {
 	it("should check ranges intersect", () => {
@@ -414,5 +414,5 @@ function antlrError(range: AntlrErrorRange): AntlrError {
 }
 
 function parseError(input: string, ranges: AntlrErrorRange[]): ParseError {
-	return new ParseError("Test Ranges", input, ranges.map((range) => antlrError(range)));
+	return new ParseError(ParseErrorCode.ERR_UNRECOGNIZED_CHARACTERS, input, ranges.map((range) => antlrError(range)));
 }
