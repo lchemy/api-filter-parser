@@ -30,7 +30,7 @@ export interface ValueErrorDataTypes {
 	[ValueErrorCode.ERR_EXPECTED_SUBQUERY_FOR_PLUCKED_JOIN_MANY]: undefined;
 }
 
-const messages = {
+const messages: Record<ValueErrorCode, (...args: any[]) => string> = {
 	[ValueErrorCode.ERR_UNEXPECTED_DEFAULT]: () => "Unexpected call for value default result",
 	[ValueErrorCode.ERR_UNEXPECTED_RAW_FUNCTION_AS_RAW]: (key) => `Unexpected raw function key ${ key } used as a raw key`,
 	[ValueErrorCode.ERR_UNEXPECTED_RAW_AS_RAW_FUNCTION]: (key) => `Unexpected raw key ${ key } used as a raw function key`,

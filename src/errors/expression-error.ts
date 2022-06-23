@@ -24,7 +24,7 @@ export interface ExpressionErrorDataTypes {
 	[ExpressionErrorCode.ERR_INVALID_VALUE]: any;
 }
 
-const messages = {
+const messages: Record<ExpressionErrorCode, (...args: any[]) => string> = {
 	[ExpressionErrorCode.ERR_UNEXPECTED_DEFAULT]: () => "Unexpected call for expression default result",
 	[ExpressionErrorCode.ERR_UNEXPECTED_GROUPING]: (group) => `Unexpected grouping ${ group }`,
 	[ExpressionErrorCode.ERR_UNEXPECTED_OPERATOR]: (op) => `Unexpected operator ${ op }`,
