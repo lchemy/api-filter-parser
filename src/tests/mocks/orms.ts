@@ -71,10 +71,10 @@ export const $classesOrm: OrmRef<ClassesOrm> = buildOrm($classesSchema).defineRe
 			return students.id.$eq(studentsClasses.studentId);
 		}).on((_, studentsClasses, classes) => {
 			return classes.id.$eq(studentsClasses.classId);
-		}).partitionTo((students) => {
+		}).partitionTo<string>((students) => {
 			return {
 				aToM: students.name.$lt("n"),
-				aToZ: students.name.$gte("n")
+				nToZ: students.name.$gte("n")
 			};
 		})
 	};

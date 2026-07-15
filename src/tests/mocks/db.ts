@@ -1,11 +1,9 @@
-// TODO: https://github.com/Microsoft/TypeScript/issues/21621
-import { Client, Config } from "knex";
-import Knex from "knex";
+import { Client, Knex, knex } from "knex";
 
 class NullClient extends Client {
 	dialect = "test";
 
-	constructor(config: Config) {
+	constructor(config: Knex.Config) {
 		super(config);
 	}
 
@@ -14,6 +12,6 @@ class NullClient extends Client {
 	}
 }
 
-export const db = Knex({
+export const db = knex({
 	client: NullClient
 });

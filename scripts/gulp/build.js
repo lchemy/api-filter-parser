@@ -39,10 +39,7 @@ gulp.task("build:codegen", () => {
 		throw new Error(`antlr4ts exited with exit code ${ out.code }`);
 	}
 
-	// need to replace all the imports with @lchemy/antlr4ts
-	return gulp.src("./src/codegen/*.ts").pipe(map((code) => {
-		return code.toString("utf8").replace(/(^import .+? from ')antlr4ts(.*?');/gm, "$1@lchemy/antlr4ts$2");
-	})).pipe(gulp.dest("./src/codegen"));
+	return Promise.resolve();
 });
 
 gulp.task("build:ts", () => {

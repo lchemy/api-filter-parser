@@ -1,5 +1,5 @@
-import { ANTLRInputStream, CommonTokenStream } from "@lchemy/antlr4ts";
 import { Filter, Orm, OrmRef } from "@lchemy/orm";
+import { ANTLRInputStream, CommonTokenStream } from "antlr4ts";
 
 import { ApiFilterLexer } from "./codegen/ApiFilterLexer";
 import { ApiFilterParser } from "./codegen/ApiFilterParser";

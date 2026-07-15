@@ -1,6 +1,6 @@
-import { AbstractParseTreeVisitor } from "@lchemy/antlr4ts/tree";
 import { raw } from "@lchemy/orm";
 import { Field, Orm, PluckedJoinManyField, WrappedRaw } from "@lchemy/orm/models";
+import { AbstractParseTreeVisitor } from "antlr4ts/tree";
 
 import {
 	FieldValueContext,
