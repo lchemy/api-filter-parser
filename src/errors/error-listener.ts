@@ -1,4 +1,4 @@
-import { ANTLRErrorListener, CommonToken, RecognitionException, Recognizer, Token } from "@lchemy/antlr4ts";
+import { ANTLRErrorListener, CommonToken, RecognitionException, Recognizer, Token } from "antlr4ts";
 
 import { AntlrError } from "./antlr-error";
 

@@ -1,4 +1,4 @@
-import { TerminalNode } from "@lchemy/antlr4ts/tree";
+import { TerminalNode } from "antlr4ts/tree";
 
 import {
 	ApiFilterParser,

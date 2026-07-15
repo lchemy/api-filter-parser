@@ -1,4 +1,4 @@
-import { TerminalNode } from "@lchemy/antlr4ts/tree";
+import { TerminalNode } from "antlr4ts/tree";
 
 import { ApiFilterParser, RawValueContext, ValueContext } from "../codegen/ApiFilterParser";
 import { $teachersOrm } from "../tests/mocks";
